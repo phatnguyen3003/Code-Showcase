@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Showcase Library</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-bg: #f8fafc;
+            --sidebar-bg: #ffffff;
+            --main-bg: #f8fafc;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --accent-color: #3b82f6;
+            --border-color: #e2e8f0;
+            --sidebar-width: 300px;
+            --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--primary-bg);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        #sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 32px 24px;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+
+        #sidebar h2 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 32px;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        #sidebar h2 svg {
+            color: var(--accent-color);
+        }
+
+        .series-list {
+            list-style: none;
+        }
+
+        .series-item {
+            padding: 14px 18px;
+            margin-bottom: 10px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+            color: var(--text-muted);
+            border: 1px solid transparent;
+        }
+
+        .series-item:hover {
+            background-color: #f1f5f9;
+            color: var(--text-main);
+        }
+
+        .series-item.active {
+            background-color: #eff6ff;
+            color: var(--accent-color);
+            border-color: #bfdbfe;
+        }
+
+        /* Main Content */
+        #main-content {
+            flex-grow: 1;
+            padding: 60px 40px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #content-wrapper {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-muted);
+            text-align: center;
+            padding-top: 100px;
+        }
+
+        .empty-state h2 {
+            margin-top: 24px;
+            color: var(--text-main);
+            font-size: 1.5rem;
+        }
+
+        .header-area {
+            margin-bottom: 50px;
+            width: 100%;
+        }
+
+        .header-area h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 12px;
+        }
+
+        .header-area p {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+        }
+
+        /* Blocks */
+        .content-block {
+            margin-bottom: 50px;
+            width: 100%;
+        }
+
+        .text-block {
+            line-height: 1.8;
+            font-size: 1.15rem;
+            color: #334155;
+            padding: 24px;
+            background: #f1f5f9;
+            border-radius: 12px;
+            white-space: pre-line;
+        }
+
+        .file-card {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.05);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-header {
+            padding: 20px 24px;
+            background-color: #f8fafc;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-header h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .btn-open {
+            padding: 10px 16px;
+            background-color: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            color: var(--text-main);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-open:hover {
+            background: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+        }
+
+        .iframe-container {
+            width: 100%;
+            aspect-ratio: 1.1 / 1;
+            background: #fff;
+            height: auto;
+            min-height: 800px;
+        }
+
+        .iframe-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            body {
+                flex-direction: column;
+            }
+
+            #sidebar {
+                width: 100%;
+                height: auto;
+                max-height: 250px;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+            }
+
+            #main-content {
+                padding: 40px 20px;
+            }
+
+            .iframe-container {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <aside id="sidebar">
+        <h2 id="lib-title">Library</h2>
+        <ul class="series-list" id="series-list">
+            <!-- Loaded dynamically -->
+        </ul>
+    </aside>
+
+    <main id="main-content">
+        <div id="content-wrapper">
+            <div class="empty-state" id="empty-state">
+                <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none"
+                    stroke="#cbd5e1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
+                    <path d="M8 7h6"></path>
+                    <path d="M8 11h8"></path>
+                </svg>
+                <h2>Select a collection to start</h2>
+                <p>Lesson content will appear here.</p>
+            </div>
+            <div id="main-display" style="display: none;">
+                <div class="header-area">
+                    <h1 id="series-title">Series Title</h1>
+                    <p id="series-desc">Explore the detailed content below.</p>
+                </div>
+                <div id="blocks-container">
+                    <!-- Loaded dynamically -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Load Main Data -->
+    <script src="./data-main.js"></script>
+
+    <script>
+        const seriesListEl = document.getElementById('series-list');
+        const mainDisplay = document.getElementById('main-display');
+        const emptyState = document.getElementById('empty-state');
+        const blocksContainer = document.getElementById('blocks-container');
+        const seriesTitleEl = document.getElementById('series-title');
+        const libTitleEl = document.getElementById('lib-title');
+
+        // Initialize app
+        function init() {
+            if (window.MAIN_DATA) {
+                libTitleEl.textContent = window.MAIN_DATA.libraryTitle || "Library";
+                renderSidebar(window.MAIN_DATA.seriesList);
+
+                // Kiểm tra URL Params
+                const urlParams = new URLSearchParams(window.location.search);
+                const sParam = urlParams.get('s');
+                if (sParam) {
+                    loadSeries(sParam);
+                }
+            } else {
+                console.error('Data in data-main.js not found');
+            }
+        }
+
+        function renderSidebar(seriesList) {
+            seriesListEl.innerHTML = '';
+            seriesList.forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'series-item';
+                li.textContent = item.title;
+                li.dataset.id = item.id;
+                li.addEventListener('click', () => {
+                    updateUrl(item.id);
+                    loadSeries(item.id);
+                });
+                seriesListEl.appendChild(li);
+            });
+        }
+
+        function loadSeries(id) {
+            // Update UI active state
+            document.querySelectorAll('.series-item').forEach(item => {
+                item.classList.toggle('active', item.dataset.id === id);
+            });
+
+            // Dynamic script loading for series data
+            const oldScript = document.getElementById('series-data-script');
+            if (oldScript) oldScript.remove();
+
+            const script = document.createElement('script');
+            script.id = 'series-data-script';
+            script.src = `./series/${id}/data-series.js`;
+
+            script.onload = () => {
+                if (window.SERIES_DATA) {
+                    renderContent(window.SERIES_DATA, id);
+                    emptyState.style.display = 'none';
+                    mainDisplay.style.display = 'block';
+                    mainDisplay.scrollTo(0, 0);
+                    window.scrollTo(0, 0);
+                }
+            };
+
+            script.onerror = () => {
+                alert('Content for this series not found.');
+            };
+
+            document.body.appendChild(script);
+        }
+
+        function extractYoutubeId(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|shorts\/)([^#\&\?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
+
+        function renderContent(data, folderId) {
+            const info = window.MAIN_DATA.seriesList.find(s => s.id === folderId);
+            seriesTitleEl.textContent = info ? info.title : folderId;
+            blocksContainer.innerHTML = '';
+
+            data.content.forEach(item => {
+                const block = document.createElement('div');
+                block.className = 'content-block';
+
+                if (item.type === 'text') {
+                    block.classList.add('text-block');
+                    block.innerHTML = `<p>${item.value}</p>`;
+                } else if (item.type === 'file') {
+                    const filePath = `./series/${folderId}/${item.path}`;
+                    block.innerHTML = `
+                        <div class="file-card">
+                            <div class="card-header">
+                                <h3>${item.title || item.path}</h3>
+                                <a href="${filePath}" target="_blank" class="btn-open">
+                                    Open in new tab
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" x2="21" y1="14" y2="3"></line></svg>
+                                </a>
+                            </div>
+                            <div class="iframe-container">
+                                <iframe src="${filePath}" loading="lazy"></iframe>
+                            </div>
+                        </div>
+                    `;
+                } else if (item.type === 'youtube') {
+                    const videoId = extractYoutubeId(item.url);
+                    if (videoId) {
+                        block.innerHTML = `
+                            <div class="file-card">
+                                <div class="card-header">
+                                    <h3>${item.title || "YouTube Video"}</h3>
+                                    <a href="${item.url}" target="_blank" class="btn-open">
+                                        Watch on YouTube
+                                    </a>
+                                </div>
+                                <div class="iframe-container" style="aspect-ratio: 16/9; min-height: auto;">
+                                    <iframe src="https://www.youtube.com/embed/${videoId}" 
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                            referrerpolicy="no-referrer"
+                                            allowfullscreen 
+                                            loading="lazy"></iframe>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+                blocksContainer.appendChild(block);
+            });
+        }
+
+        function updateUrl(id) {
+            const url = new URL(window.location);
+            url.searchParams.set('s', id);
+            window.history.pushState({}, '', url);
+        }
+
+        // Xử lý nút Back/Forward
+        window.addEventListener('popstate', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const id = urlParams.get('s');
+            if (id) {
+                loadSeries(id);
+            } else {
+                emptyState.style.display = 'flex';
+                mainDisplay.style.display = 'none';
+                document.querySelectorAll('.series-item').forEach(item => item.classList.remove('active'));
+            }
+        });
+
+        init();
+    </script>
+</body>
+
+</html>

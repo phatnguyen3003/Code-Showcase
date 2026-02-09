@@ -1,0 +1,250 @@
+<!doctype html>
+<!--
+Stick RTS – Fixed Map (No Camera)
+--------------------------------
+• Fixed screen-size battlefield
+• 2 bases per side, always visible
+• Passive miners (auto gold)
+• Stable spawning & combat
+• Single-file HTML5 Canvas RTS
+-->
+
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Stick RTS – Fixed Map</title>
+    <style>
+        html,
+        body {
+            margin: 0;
+            background: #111;
+            color: #fff;
+            font-family: sans-serif
+        }
+
+        canvas {
+            display: block;
+            margin: auto;
+            border: 3px solid #222;
+            background: #9fd3ff;
+            max-width: 100%;
+            height: auto;
+        }
+
+        #ui {
+            position: fixed;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #111c;
+            padding: 8px 12px;
+            border-radius: 8px;
+            display: flex;
+            gap: 10px;
+            align-items: center
+        }
+
+        button {
+            background: #222;
+            color: #fff;
+            border: 1px solid #444;
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="c" width="1200" height="650"></canvas>
+
+    <div id="ui">
+        <span id="gold">Gold: 0</span>
+        <button onclick="spawn('miner')">Miner (30)</button>
+        <button onclick="spawn('light')">Light (40)</button>
+        <button onclick="spawn('heavy')">Heavy (70)</button>
+        <button onclick="spawn('ranged')">Ranged (60)</button>
+    </div>
+
+    <script>
+        /* ========== CONFIG ========== */
+        const STARTING_GOLD = 200;
+        const GOLD_PER_MINER = 4;
+
+        /* ========== CANVAS ========== */
+        const c = document.getElementById("c");
+        const ctx = c.getContext("2d");
+        const GROUND = () => c.height * 0.72;
+
+        /* ========== STATE ========== */
+        let gold = STARTING_GOLD;
+        let aiGold = STARTING_GOLD;
+        let units = [];
+
+        /* ========== BASES (FIXED POSITIONS) ========== */
+        const bases = [
+            { side: -1, x: 140, hp: 800 },
+            { side: -1, x: 260, hp: 800 },
+
+            { side: 1, x: c.width - 260, hp: 800 },
+            { side: 1, x: c.width - 140, hp: 800 },
+        ];
+
+        /* ========== UNIT TYPES ========== */
+        const TYPES = {
+            miner: { cost: 30, hp: 60, speed: 0, atk: 0, range: 0, miner: true },
+            light: { cost: 40, hp: 80, speed: 90, atk: 12, range: 18 },
+            heavy: { cost: 70, hp: 160, speed: 50, atk: 25, range: 18 },
+            ranged: { cost: 60, hp: 70, speed: 80, atk: 10, range: 140 }
+        };
+
+        /* ========== UNIT CLASS ========== */
+        class Unit {
+            constructor(type, side, x) {
+                Object.assign(this, TYPES[type]);
+                this.type = type;
+                this.side = side;
+                this.x = x;
+                this.hp = this.hp;
+                this.cool = 0;
+            }
+
+            nearestEnemyBase() {
+                return bases
+                    .filter(b => b.side !== this.side && b.hp > 0)
+                    .sort((a, b) => Math.abs(a.x - this.x) - Math.abs(b.x - this.x))[0];
+            }
+
+            update(dt) {
+                if (this.hp <= 0 || this.miner) return;
+
+                this.cool = Math.max(0, this.cool - dt);
+
+                const enemy = units.find(u =>
+                    u.side !== this.side &&
+                    !u.miner &&
+                    u.hp > 0 &&
+                    Math.abs(u.x - this.x) < this.range
+                );
+
+                if (enemy) {
+                    if (this.cool <= 0) {
+                        enemy.hp -= this.atk;
+                        this.cool = 1;
+                    }
+                    return;
+                }
+
+                const base = this.nearestEnemyBase();
+                if (!base) return;
+
+                this.x += Math.sign(base.x - this.x) * this.speed * dt;
+
+                if (Math.abs(base.x - this.x) < 22 && this.cool <= 0) {
+                    base.hp -= this.atk;
+                    this.cool = 1;
+                }
+            }
+
+            draw() {
+                const y = GROUND();
+                ctx.strokeStyle = this.miner ? "#444" : (this.side < 0 ? "#0a0" : "#a00");
+                ctx.lineWidth = 2;
+
+                ctx.beginPath();
+                ctx.arc(this.x, y - 28, 6, 0, Math.PI * 2);
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(this.x, y - 22);
+                ctx.lineTo(this.x, y);
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(this.x, y);
+                ctx.lineTo(this.x - 8, y + 10);
+                ctx.moveTo(this.x, y);
+                ctx.lineTo(this.x + 8, y + 10);
+                ctx.stroke();
+
+                if (!this.miner) {
+                    ctx.fillStyle = "#000";
+                    ctx.fillRect(this.x - 16, y - 40, 32, 5);
+                    ctx.fillStyle = "#4f4";
+                    ctx.fillRect(this.x - 16, y - 40, 32 * (this.hp / TYPES[this.type].hp), 5);
+                }
+            }
+        }
+
+        /* ========== SPAWN ========== */
+        function spawn(type) {
+            if (gold < TYPES[type].cost) return;
+            gold -= TYPES[type].cost;
+
+            const alive = bases.filter(b => b.side < 0 && b.hp > 0);
+            const base = alive[alive.length - 1];
+
+            const offset = type === "miner" ? -40 : 40;
+            units.push(new Unit(type, -1, base.x + offset + Math.random() * 20));
+        }
+
+        /* ========== AI ========== */
+        function ai(dt) {
+            const miners = units.filter(u => u.side > 0 && u.miner).length;
+            aiGold += miners * GOLD_PER_MINER * dt;
+
+            const alive = bases.filter(b => b.side > 0 && b.hp > 0);
+            if (!alive.length) return;
+            const base = alive[0];
+
+            if (aiGold > 60 && Math.random() < dt) {
+                const k = ["light", "ranged", "heavy"][Math.random() * 3 | 0];
+                aiGold -= TYPES[k].cost;
+                units.push(new Unit(k, 1, base.x - 40));
+            }
+
+            if (miners < 3 && aiGold > 30 && Math.random() < dt * 0.3) {
+                aiGold -= 30;
+                units.push(new Unit("miner", 1, base.x + 40));
+            }
+        }
+
+        /* ========== GAME LOOP ========== */
+        let last = 0;
+        function loop(t) {
+            const dt = (t - last) / 1000; last = t;
+
+            gold += units.filter(u => u.side < 0 && u.miner).length * GOLD_PER_MINER * dt;
+            ai(dt);
+
+            units.forEach(u => u.update(dt));
+            units = units.filter(u => u.hp > 0);
+
+            ctx.clearRect(0, 0, c.width, c.height);
+
+            ctx.fillStyle = "#6fc26f";
+            ctx.fillRect(0, GROUND(), c.width, c.height);
+
+            bases.forEach(b => {
+                if (b.hp <= 0) return;
+                ctx.fillStyle = b.side < 0 ? "#0a0" : "#a00";
+                ctx.fillRect(b.x - 25, GROUND() - 80, 50, 80);
+
+                ctx.fillStyle = "#000";
+                ctx.fillRect(b.x - 25, GROUND() - 95, 50, 6);
+                ctx.fillStyle = "#4f4";
+                ctx.fillRect(b.x - 25, GROUND() - 95, 50 * (b.hp / 800), 6);
+            });
+
+            units.forEach(u => u.draw());
+
+            document.getElementById("gold").textContent = "Gold: " + (gold | 0);
+
+            requestAnimationFrame(loop);
+        }
+        requestAnimationFrame(loop);
+    </script>
+</body>
+
+</html>
