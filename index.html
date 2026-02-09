@@ -213,6 +213,44 @@
             border: none;
         }
 
+        /* YouTube Facade */
+        .video-facade {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background-size: cover;
+            background-position: center;
+            cursor: pointer;
+            text-decoration: none;
+            position: relative;
+            background-color: #000;
+        }
+
+        .play-overlay {
+            width: 80px;
+            height: 80px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s;
+            border: 3px solid white;
+        }
+
+        .video-facade:hover .play-overlay {
+            background: #ff0000;
+            transform: scale(1.1);
+            border-color: #ff0000;
+        }
+
+        .play-overlay svg {
+            fill: white;
+            margin-left: 5px;
+        }
+
         /* Responsive */
         @media (max-width: 1024px) {
             body {
@@ -389,13 +427,12 @@
                                         Watch on YouTube
                                     </a>
                                 </div>
-                                <div class="iframe-container" style="aspect-ratio: 16/9; min-height: auto;">
-                                    <iframe src="https://www.youtube.com/embed/${videoId}?origin=https://www.youtube.com" 
-                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                                            referrerpolicy="no-referrer"
-                                            allowfullscreen 
-                                            loading="lazy"></iframe>
-                                </div>
+                                <a href="${item.url}" target="_blank" class="video-facade" 
+                                   style="background-image: url('https://img.youtube.com/vi/${videoId}/maxresdefault.jpg')">
+                                    <div class="play-overlay">
+                                        <svg width="40" height="40" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                    </div>
+                                </a>
                             </div>
                         `;
                     }
