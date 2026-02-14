@@ -1,0 +1,1832 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fireworks Studio - Creative Pyrotechnics Lab</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap"
+        rel="stylesheet">
+    <style>
+        /* ===== CSS RESET & GLOBAL ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-panel: #1a1a2e;
+            --bg-accent: #16213e;
+            --color-highlight: #e94560;
+            --color-secondary: #00d9ff;
+            --color-text: #f1f1f1;
+            --color-border: rgba(255, 255, 255, 0.1);
+            --color-glow: rgba(0, 217, 255, 0.3);
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: var(--bg-primary);
+            color: var(--color-text);
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        /* ===== CANVAS ===== */
+        #fireworkCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1;
+            background: linear-gradient(180deg, #000814 0%, #001d3d 100%);
+        }
+
+        /* ===== HEADER ===== */
+        #header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid var(--color-secondary);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0, 217, 255, 0.2);
+        }
+
+        #header h1 {
+            font-family: 'Orbitron', monospace;
+            font-weight: 900;
+            font-size: 24px;
+            letter-spacing: 3px;
+            background: linear-gradient(135deg, var(--color-secondary), var(--color-highlight));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-transform: uppercase;
+            animation: glow-pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes glow-pulse {
+
+            0%,
+            100% {
+                filter: drop-shadow(0 0 10px rgba(0, 217, 255, 0.5));
+            }
+
+            50% {
+                filter: drop-shadow(0 0 20px rgba(233, 69, 96, 0.5));
+            }
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* ===== CONTROL PANEL ===== */
+        #controlPanel {
+            position: fixed;
+            top: 70px;
+            left: 0;
+            width: 320px;
+            height: calc(100vh - 70px);
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(10px);
+            border-right: 2px solid var(--color-border);
+            z-index: 10;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 20px;
+            transition: transform 0.3s ease;
+        }
+
+        #controlPanel::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #controlPanel::-webkit-scrollbar-track {
+            background: var(--bg-accent);
+        }
+
+        #controlPanel::-webkit-scrollbar-thumb {
+            background: var(--color-secondary);
+            border-radius: 4px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding: 15px;
+            background: var(--bg-accent);
+            border-radius: 8px;
+            border: 1px solid var(--color-border);
+            animation: fade-in 0.5s ease;
+        }
+
+        @keyframes fade-in {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section-title {
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--color-secondary);
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--color-border);
+        }
+
+        /* ===== BUTTONS ===== */
+        .btn {
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 600;
+            padding: 10px 20px;
+            border: 2px solid var(--color-secondary);
+            background: var(--bg-panel);
+            color: var(--color-text);
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:hover {
+            background: var(--color-secondary);
+            color: var(--bg-primary);
+            transform: scale(1.05);
+            box-shadow: 0 0 20px var(--color-glow);
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .btn-highlight {
+            border-color: var(--color-highlight);
+            background: var(--color-highlight);
+        }
+
+        .btn-highlight:hover {
+            background: #ff5577;
+            border-color: #ff5577;
+        }
+
+        /* ===== SLIDERS ===== */
+        .slider-group {
+            margin-bottom: 15px;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 13px;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            background: var(--bg-panel);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: var(--color-secondary);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px var(--color-glow);
+            transition: all 0.2s ease;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            width: 20px;
+            height: 20px;
+            box-shadow: 0 0 20px var(--color-secondary);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: var(--color-secondary);
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 0 10px var(--color-glow);
+        }
+
+        /* ===== COLOR PREVIEW ===== */
+        #colorPreview {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 3px solid var(--color-border);
+            margin: 10px auto;
+            box-shadow: 0 0 20px currentColor;
+            transition: all 0.3s ease;
+        }
+
+        .color-presets {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .preset-btn {
+            padding: 8px;
+            font-size: 11px;
+            border-radius: 4px;
+        }
+
+        /* ===== DRAWING PAD ===== */
+        #drawingPadContainer {
+            background: var(--bg-primary);
+            padding: 10px;
+            border-radius: 8px;
+            border: 2px solid var(--color-border);
+        }
+
+        #drawingPad {
+            width: 100%;
+            height: 200px;
+            border: 2px solid var(--color-secondary);
+            border-radius: 4px;
+            cursor: crosshair;
+            background: #000;
+            box-shadow: inset 0 0 20px rgba(0, 217, 255, 0.2);
+        }
+
+        .drawing-controls {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            justify-content: space-between;
+        }
+
+        /* ===== TOGGLE SWITCHES ===== */
+        .toggle-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 26px;
+            background: var(--bg-panel);
+            border-radius: 13px;
+            border: 2px solid var(--color-border);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-switch.active {
+            background: var(--color-secondary);
+            border-color: var(--color-secondary);
+            box-shadow: 0 0 15px var(--color-glow);
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-switch.active::after {
+            left: 26px;
+        }
+
+        /* ===== FIREWORK LIBRARY ===== */
+        #fireworkLibrary {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .firework-item {
+            aspect-ratio: 1;
+            background: var(--bg-primary);
+            border: 2px solid var(--color-border);
+            border-radius: 8px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .firework-item:hover {
+            border-color: var(--color-secondary);
+            transform: scale(1.05);
+            box-shadow: 0 0 15px var(--color-glow);
+        }
+
+        .firework-item canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .firework-item .delete-btn {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 20px;
+            height: 20px;
+            background: var(--color-highlight);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 12px;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .firework-item:hover .delete-btn {
+            opacity: 1;
+        }
+
+        /* ===== SEQUENCER ===== */
+        #sequencerPanel {
+            position: fixed;
+            bottom: 0;
+            left: 320px;
+            right: 0;
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(10px);
+            border-top: 2px solid var(--color-border);
+            z-index: 10;
+            max-height: 200px;
+            transition: max-height 0.3s ease;
+            overflow: hidden;
+        }
+
+        #sequencerPanel.collapsed {
+            max-height: 40px;
+        }
+
+        .sequencer-header {
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .sequencer-controls {
+            display: flex;
+            gap: 10px;
+            padding: 15px 20px;
+            flex-wrap: wrap;
+        }
+
+        #sequence {
+            display: flex;
+            gap: 10px;
+            padding: 15px 20px;
+            overflow-x: auto;
+            min-height: 100px;
+        }
+
+        .sequence-item {
+            min-width: 80px;
+            height: 80px;
+            background: var(--bg-accent);
+            border: 2px solid var(--color-border);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: move;
+            transition: all 0.3s ease;
+        }
+
+        .sequence-item:hover {
+            border-color: var(--color-secondary);
+            transform: translateY(-5px);
+        }
+
+        .sequence-item.dragging {
+            opacity: 0.5;
+        }
+
+        /* ===== STATS DISPLAY ===== */
+        #statsDisplay {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: rgba(26, 26, 46, 0.8);
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid var(--color-border);
+            font-family: 'Orbitron', monospace;
+            font-size: 12px;
+            z-index: 10;
+            min-width: 200px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            color: var(--color-secondary);
+            font-weight: 700;
+        }
+
+        /* ===== FILE INPUT ===== */
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-input-label {
+            display: block;
+            padding: 10px;
+            background: var(--bg-panel);
+            border: 2px dashed var(--color-border);
+            border-radius: 4px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-input-label:hover {
+            border-color: var(--color-secondary);
+            background: var(--bg-accent);
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            #controlPanel {
+                width: 100%;
+                height: auto;
+                max-height: 50vh;
+                top: auto;
+                bottom: 0;
+                border-right: none;
+                border-top: 2px solid var(--color-border);
+            }
+
+            #sequencerPanel {
+                left: 0;
+            }
+
+            #header h1 {
+                font-size: 16px;
+            }
+
+            #statsDisplay {
+                top: 70px;
+                right: 10px;
+                font-size: 10px;
+                padding: 10px;
+            }
+        }
+
+        /* ===== ANIMATIONS ===== */
+        @keyframes launch-flash {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.5;
+                transform: scale(2);
+            }
+
+            100% {
+                opacity: 0;
+                transform: scale(3);
+            }
+        }
+
+        .launch-flash {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, var(--color-secondary), transparent);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 5;
+            animation: launch-flash 0.5s ease-out forwards;
+        }
+
+        /* ===== INPUT STYLING ===== */
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            background: var(--bg-panel);
+            border: 2px solid var(--color-border);
+            border-radius: 4px;
+            color: var(--color-text);
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 14px;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--color-secondary);
+            box-shadow: 0 0 10px var(--color-glow);
+        }
+
+        /* ===== CHECKBOX ===== */
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Canvas for fireworks display -->
+    <canvas id="fireworkCanvas"></canvas>
+
+    <!-- Header -->
+    <div id="header">
+        <h1>🎆 Fireworks Studio</h1>
+        <div class="header-buttons">
+            <button class="btn btn-small" onclick="saveShow()">Save Show</button>
+            <button class="btn btn-small" onclick="loadShow()">Load Show</button>
+        </div>
+    </div>
+
+    <!-- Stats Display -->
+    <div id="statsDisplay">
+        <div class="stat-row">
+            <span>Particles:</span>
+            <span class="stat-value" id="particleCount">0</span>
+        </div>
+        <div class="stat-row">
+            <span>FPS:</span>
+            <span class="stat-value" id="fpsDisplay">60</span>
+        </div>
+        <div class="stat-row">
+            <span>Active Fireworks:</span>
+            <span class="stat-value" id="fireworkCount">0</span>
+        </div>
+    </div>
+
+    <!-- Control Panel -->
+    <div id="controlPanel">
+        <!-- Color Section -->
+        <div class="section">
+            <div class="section-title">Color Mixer</div>
+            <div id="colorPreview" style="background: hsl(0, 100%, 50%);"></div>
+
+            <div class="slider-group">
+                <div class="slider-label">
+                    <span>Hue</span>
+                    <span id="hueValue">0°</span>
+                </div>
+                <input type="range" id="hueSlider" min="0" max="360" value="0">
+            </div>
+
+            <div class="slider-group">
+                <div class="slider-label">
+                    <span>Saturation</span>
+                    <span id="satValue">100%</span>
+                </div>
+                <input type="range" id="satSlider" min="0" max="100" value="100">
+            </div>
+
+            <div class="slider-group">
+                <div class="slider-label">
+                    <span>Lightness</span>
+                    <span id="lightValue">50%</span>
+                </div>
+                <input type="range" id="lightSlider" min="0" max="100" value="50">
+            </div>
+
+            <div class="color-presets">
+                <button class="btn btn-small preset-btn" onclick="setColorPreset(0, 100, 50)">Red Hot</button>
+                <button class="btn btn-small preset-btn" onclick="setColorPreset(200, 100, 50)">Ocean</button>
+                <button class="btn btn-small preset-btn" onclick="setColorPreset(120, 100, 40)">Neon</button>
+                <button class="btn btn-small preset-btn" onclick="setColorPreset(45, 100, 50)">Golden</button>
+                <button class="btn btn-small preset-btn" onclick="setColorPreset(280, 100, 50)">Purple</button>
+                <button class="btn btn-small preset-btn" onclick="randomColor()">Random</button>
+            </div>
+        </div>
+
+        <!-- Shape Designer Section -->
+        <div class="section">
+            <div class="section-title">Shape Designer</div>
+            <div id="drawingPadContainer">
+                <canvas id="drawingPad" width="280" height="200"></canvas>
+                <div class="drawing-controls">
+                    <button class="btn btn-small" onclick="clearDrawingPad()">Clear</button>
+                    <button class="btn btn-small btn-highlight" onclick="saveCustomShape()">Save Shape</button>
+                    <button class="btn btn-small" onclick="testCustomShape()">Test</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Image Upload Section -->
+        <div class="section">
+            <div class="section-title">Image to Firework</div>
+            <div class="file-input-wrapper">
+                <input type="file" id="imageInput" accept="image/*" onchange="handleImageUpload(event)">
+                <label for="imageInput" class="file-input-label">
+                    📁 Upload Image
+                </label>
+            </div>
+            <div class="slider-group" style="margin-top: 10px;">
+                <div class="slider-label">
+                    <span>Brightness Threshold</span>
+                    <span id="thresholdValue">50</span>
+                </div>
+                <input type="range" id="brightnessThreshold" min="0" max="255" value="50">
+            </div>
+            <div style="margin-top: 10px;">
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="checkbox" id="edgeDetection">
+                    <span>Edge Detection Mode</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Mode Section -->
+        <div class="section">
+            <div class="section-title">Launch Mode</div>
+            <div class="toggle-group">
+                <span>Manual Fireworks</span>
+                <div class="toggle-switch active" id="manualToggle" onclick="toggleMode('manual')"></div>
+            </div>
+            <div class="slider-group" id="manualWeightSlider">
+                <div class="slider-label">
+                    <span>Manual Weight</span>
+                    <span id="manualWeightValue">50%</span>
+                </div>
+                <input type="range" id="manualWeight" min="0" max="100" value="50">
+            </div>
+
+            <div class="toggle-group">
+                <span>Auto Generation</span>
+                <div class="toggle-switch active" id="autoToggle" onclick="toggleMode('auto')"></div>
+            </div>
+            <div class="slider-group" id="autoWeightSlider">
+                <div class="slider-label">
+                    <span>Auto Weight</span>
+                    <span id="autoWeightValue">50%</span>
+                </div>
+                <input type="range" id="autoWeight" min="0" max="100" value="50">
+            </div>
+        </div>
+
+        <!-- Launch Controls Section -->
+        <div class="section">
+            <div class="section-title">Launch Controls</div>
+            <button class="btn btn-highlight" onclick="launchSingleFirework()"
+                style="width: 100%; margin-bottom: 10px;">
+                🚀 Launch Firework
+            </button>
+
+            <div class="slider-group">
+                <div class="slider-label">
+                    <span>Launch Frequency</span>
+                    <span id="frequencyValue">1.0/sec</span>
+                </div>
+                <input type="range" id="launchFrequency" min="1" max="100" value="10" step="1">
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button class="btn btn-small" onclick="toggleAutoLaunch()" id="autoLaunchBtn">Start Auto</button>
+                <button class="btn btn-small" onclick="launchBurst()">Burst (5x)</button>
+            </div>
+        </div>
+
+        <!-- Firework Library Section -->
+        <div class="section">
+            <div class="section-title">Saved Fireworks (<span id="libraryCount">0</span>/20)</div>
+            <div id="fireworkLibrary"></div>
+            <button class="btn btn-small" onclick="clearLibrary()" style="width: 100%; margin-top: 10px;">Clear
+                Library</button>
+        </div>
+
+        <!-- Physics Settings -->
+        <div class="section">
+            <div class="section-title">Physics</div>
+            <div class="slider-group">
+                <div class="slider-label">
+                    <span>Gravity</span>
+                    <span id="gravityValue">9.8</span>
+                </div>
+                <input type="range" id="gravitySlider" min="1" max="20" value="98" step="1">
+            </div>
+            <div class="slider-group">
+                <div class="slider-label">
+                    <span>Wind</span>
+                    <span id="windValue">0.0</span>
+                </div>
+                <input type="range" id="windSlider" min="-10" max="10" value="0" step="1">
+            </div>
+        </div>
+    </div>
+
+    <!-- Sequencer Panel -->
+    <div id="sequencerPanel" class="collapsed">
+        <div class="sequencer-header" onclick="toggleSequencer()">
+            <span class="section-title" style="margin: 0; border: none;">Sequence Builder</span>
+            <span id="sequencerToggleIcon">▲</span>
+        </div>
+        <div class="sequencer-controls">
+            <button class="btn btn-small" onclick="playSequence()">▶ Play</button>
+            <button class="btn btn-small" onclick="pauseSequence()">⏸ Pause</button>
+            <button class="btn btn-small" onclick="stopSequence()">⏹ Stop</button>
+            <button class="btn btn-small" onclick="clearSequence()">Clear Sequence</button>
+            <label style="display: flex; align-items: center; gap: 8px;">
+                <input type="checkbox" id="loopSequence">
+                <span>Loop</span>
+            </label>
+        </div>
+        <div id="sequence"></div>
+    </div>
+
+    <script>
+        // ===== GLOBAL STATE =====
+        const canvas = document.getElementById('fireworkCanvas');
+        const ctx = canvas.getContext('2d', { alpha: false });
+
+        let particles = [];
+        let fireworks = [];
+        let customShape = [];
+        let imageShape = null;
+        let currentColor = { h: 0, s: 100, l: 50 };
+        let fireworkLibrary = [];
+        let sequence = [];
+        let isSequencePlaying = false;
+        let sequenceIndex = 0;
+        let autoLaunchInterval = null;
+        let lastFrameTime = performance.now();
+        let fps = 60;
+        let gravity = 0.098;
+        let wind = 0;
+
+        const physics = {
+            gravity: 0.098,
+            friction: 0.98,
+            wind: 0
+        };
+
+        const settings = {
+            manualEnabled: true,
+            autoEnabled: true,
+            manualWeight: 50,
+            autoWeight: 50
+        };
+
+        // ===== CANVAS SETUP =====
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        resizeCanvas();
+        window.addEventListener('resize', debounce(resizeCanvas, 300));
+
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // ===== PARTICLE CLASS =====
+        class Particle {
+            constructor(x, y, vx, vy, color, size = 2) {
+                this.x = x;
+                this.y = y;
+                this.vx = vx;
+                this.vy = vy;
+                this.color = color;
+                this.size = size;
+                this.life = 1.0;
+                this.maxLife = 1.0;
+                this.trail = [];
+                this.maxTrailLength = 10;
+            }
+
+            update() {
+                // Physics
+                this.vy += physics.gravity;
+                this.vx *= physics.friction;
+                this.vy *= physics.friction;
+                this.vx += physics.wind * 0.01;
+
+                // Position
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // Trail
+                this.trail.push({ x: this.x, y: this.y });
+                if (this.trail.length > this.maxTrailLength) {
+                    this.trail.shift();
+                }
+
+                // Life decay
+                this.life -= 0.01;
+            }
+
+            draw() {
+                // Draw trail
+                if (this.trail.length > 1) {
+                    ctx.strokeStyle = this.color.replace(')', ', 0.3)').replace('hsl', 'hsla');
+                    ctx.lineWidth = this.size * 0.5;
+                    ctx.beginPath();
+                    ctx.moveTo(this.trail[0].x, this.trail[0].y);
+                    for (let i = 1; i < this.trail.length; i++) {
+                        ctx.lineTo(this.trail[i].x, this.trail[i].y);
+                    }
+                    ctx.stroke();
+                }
+
+                // Draw particle
+                const alpha = Math.max(0, this.life);
+                ctx.fillStyle = this.color.replace(')', `, ${alpha})`).replace('hsl', 'hsla');
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Glow effect
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = this.color;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+
+            isDead() {
+                return this.life <= 0 || this.y > canvas.height + 100;
+            }
+        }
+
+        // ===== FIREWORK CLASS =====
+        class Firework {
+            constructor(x, y, targetY, color, shape = 'burst') {
+                this.x = x;
+                this.y = y;
+                this.targetY = targetY;
+                this.color = color;
+                this.shape = shape;
+                this.exploded = false;
+                this.vy = -12;
+                this.trail = [];
+            }
+
+            update() {
+                if (!this.exploded) {
+                    this.vy += 0.2;
+                    this.y += this.vy;
+
+                    this.trail.push({ x: this.x, y: this.y });
+                    if (this.trail.length > 20) {
+                        this.trail.shift();
+                    }
+
+                    if (this.y <= this.targetY || this.vy > 0) {
+                        this.explode();
+                    }
+                }
+            }
+
+            draw() {
+                if (!this.exploded) {
+                    // Draw trail
+                    if (this.trail.length > 1) {
+                        const gradient = ctx.createLinearGradient(
+                            this.trail[0].x, this.trail[0].y,
+                            this.x, this.y
+                        );
+                        gradient.addColorStop(0, 'rgba(255, 255, 255, 0)');
+                        gradient.addColorStop(1, 'rgba(255, 255, 255, 0.8)');
+
+                        ctx.strokeStyle = gradient;
+                        ctx.lineWidth = 3;
+                        ctx.beginPath();
+                        ctx.moveTo(this.trail[0].x, this.trail[0].y);
+                        for (let i = 1; i < this.trail.length; i++) {
+                            ctx.lineTo(this.trail[i].x, this.trail[i].y);
+                        }
+                        ctx.stroke();
+                    }
+
+                    // Draw rocket
+                    ctx.fillStyle = 'white';
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, 4, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            explode() {
+                this.exploded = true;
+                createExplosion(this.x, this.y, this.color, this.shape);
+            }
+
+            isDead() {
+                return this.exploded;
+            }
+        }
+
+        // ===== EXPLOSION PATTERNS =====
+        function createExplosion(x, y, color, shape) {
+            const particleCount = 100;
+
+            if (shape === 'burst') {
+                for (let i = 0; i < particleCount; i++) {
+                    const angle = (Math.PI * 2 * i) / particleCount;
+                    const speed = Math.random() * 5 + 3;
+                    const vx = Math.cos(angle) * speed;
+                    const vy = Math.sin(angle) * speed;
+                    particles.push(new Particle(x, y, vx, vy, color, Math.random() * 3 + 1));
+                }
+            } else if (shape === 'ring') {
+                for (let i = 0; i < particleCount; i++) {
+                    const angle = (Math.PI * 2 * i) / particleCount;
+                    const speed = 6;
+                    const vx = Math.cos(angle) * speed;
+                    const vy = Math.sin(angle) * speed;
+                    particles.push(new Particle(x, y, vx, vy, color, 2));
+                }
+            } else if (shape === 'spiral') {
+                for (let i = 0; i < particleCount; i++) {
+                    const angle = (Math.PI * 4 * i) / particleCount;
+                    const speed = (i / particleCount) * 8;
+                    const vx = Math.cos(angle) * speed;
+                    const vy = Math.sin(angle) * speed;
+                    particles.push(new Particle(x, y, vx, vy, color, 2));
+                }
+            } else if (shape === 'heart') {
+                for (let i = 0; i < particleCount; i++) {
+                    const t = (i / particleCount) * Math.PI * 2;
+                    const heartX = 16 * Math.pow(Math.sin(t), 3);
+                    const heartY = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
+                    const vx = heartX * 0.3;
+                    const vy = heartY * 0.3;
+                    particles.push(new Particle(x, y, vx, vy, color, 2));
+                }
+            } else if (shape === 'star') {
+                const points = 5;
+                const particles_per_point = particleCount / points;
+                for (let i = 0; i < points; i++) {
+                    const angle = (Math.PI * 2 * i) / points - Math.PI / 2;
+                    for (let j = 0; j < particles_per_point; j++) {
+                        const speed = (j / particles_per_point) * 8;
+                        const vx = Math.cos(angle) * speed;
+                        const vy = Math.sin(angle) * speed;
+                        particles.push(new Particle(x, y, vx, vy, color, 2));
+                    }
+                }
+            } else if (shape === 'willow') {
+                for (let i = 0; i < particleCount; i++) {
+                    const angle = (Math.PI * 2 * i) / particleCount;
+                    const speed = Math.random() * 3 + 2;
+                    const vx = Math.cos(angle) * speed;
+                    const vy = Math.sin(angle) * speed - 2;
+                    const p = new Particle(x, y, vx, vy, color, 2);
+                    p.maxTrailLength = 30;
+                    particles.push(p);
+                }
+            } else if (shape === 'custom' && customShape.length > 0) {
+                customShape.forEach(point => {
+                    const scale = 100;
+                    const vx = point.x * scale * 0.05;
+                    const vy = point.y * scale * 0.05;
+                    particles.push(new Particle(x, y, vx, vy, color, 2));
+                });
+            } else if (shape === 'image' && imageShape) {
+                imageShape.forEach(point => {
+                    const scale = 150;
+                    const vx = point.x * scale * 0.03;
+                    const vy = point.y * scale * 0.03;
+                    const particleColor = point.color || color;
+                    particles.push(new Particle(x, y, vx, vy, particleColor, 2));
+                });
+            } else {
+                // Default burst
+                for (let i = 0; i < particleCount; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = Math.random() * 5 + 2;
+                    const vx = Math.cos(angle) * speed;
+                    const vy = Math.sin(angle) * speed;
+                    particles.push(new Particle(x, y, vx, vy, color, Math.random() * 3 + 1));
+                }
+            }
+
+            // Add launch flash
+            createLaunchFlash(x, y);
+        }
+
+        function createLaunchFlash(x, y) {
+            const flash = document.createElement('div');
+            flash.className = 'launch-flash';
+            flash.style.left = x + 'px';
+            flash.style.top = y + 'px';
+            document.body.appendChild(flash);
+            setTimeout(() => flash.remove(), 500);
+        }
+
+        // ===== RANDOM FIREWORK GENERATION =====
+        function generateRandomFirework() {
+            const shapes = ['burst', 'ring', 'spiral', 'heart', 'star', 'willow'];
+            const shape = shapes[Math.floor(Math.random() * shapes.length)];
+
+            const hue = Math.random() * 360;
+            const sat = 70 + Math.random() * 30;
+            const light = 40 + Math.random() * 20;
+            const color = `hsl(${hue}, ${sat}%, ${light}%)`;
+
+            return { shape, color };
+        }
+
+        // ===== LAUNCH FUNCTIONS =====
+        function launchSingleFirework() {
+            const x = Math.random() * canvas.width;
+            const targetY = canvas.height * 0.2 + Math.random() * canvas.height * 0.3;
+
+            let shape, color;
+
+            if (settings.manualEnabled && settings.autoEnabled) {
+                const roll = Math.random() * 100;
+                if (roll < settings.manualWeight) {
+                    // Use manual firework
+                    if (fireworkLibrary.length > 0) {
+                        const fw = fireworkLibrary[Math.floor(Math.random() * fireworkLibrary.length)];
+                        shape = fw.shape;
+                        color = fw.color;
+                    } else {
+                        const random = generateRandomFirework();
+                        shape = random.shape;
+                        color = random.color;
+                    }
+                } else {
+                    // Use auto-generated
+                    const random = generateRandomFirework();
+                    shape = random.shape;
+                    color = random.color;
+                }
+            } else if (settings.manualEnabled && fireworkLibrary.length > 0) {
+                const fw = fireworkLibrary[Math.floor(Math.random() * fireworkLibrary.length)];
+                shape = fw.shape;
+                color = fw.color;
+            } else {
+                const random = generateRandomFirework();
+                shape = random.shape;
+                color = random.color;
+            }
+
+            fireworks.push(new Firework(x, canvas.height, targetY, color, shape));
+        }
+
+        function launchBurst() {
+            for (let i = 0; i < 5; i++) {
+                setTimeout(() => launchSingleFirework(), i * 100);
+            }
+        }
+
+        function toggleAutoLaunch() {
+            if (autoLaunchInterval) {
+                clearInterval(autoLaunchInterval);
+                autoLaunchInterval = null;
+                document.getElementById('autoLaunchBtn').textContent = 'Start Auto';
+            } else {
+                const frequency = parseFloat(document.getElementById('launchFrequency').value) / 10;
+                autoLaunchInterval = setInterval(launchSingleFirework, 1000 / frequency);
+                document.getElementById('autoLaunchBtn').textContent = 'Stop Auto';
+            }
+        }
+
+        // ===== ANIMATION LOOP =====
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Calculate FPS
+            const currentTime = performance.now();
+            const deltaTime = currentTime - lastFrameTime;
+            fps = Math.round(1000 / deltaTime);
+            lastFrameTime = currentTime;
+
+            // Semi-transparent clear for trails
+            ctx.fillStyle = 'rgba(0, 8, 20, 0.15)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Update and draw fireworks
+            fireworks = fireworks.filter(fw => {
+                fw.update();
+                fw.draw();
+                return !fw.isDead();
+            });
+
+            // Update and draw particles
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+
+            // Remove dead particles and limit count
+            particles = particles.filter(p => !p.isDead());
+            if (particles.length > 15000) {
+                particles = particles.slice(particles.length - 15000);
+            }
+
+            // Update stats
+            document.getElementById('particleCount').textContent = particles.length;
+            document.getElementById('fpsDisplay').textContent = fps;
+            document.getElementById('fireworkCount').textContent = fireworks.length;
+        }
+
+        animate();
+
+        // ===== COLOR MIXER =====
+        function updateColor() {
+            const h = document.getElementById('hueSlider').value;
+            const s = document.getElementById('satSlider').value;
+            const l = document.getElementById('lightSlider').value;
+
+            currentColor = { h, s, l };
+            const colorString = `hsl(${h}, ${s}%, ${l}%)`;
+
+            document.getElementById('colorPreview').style.background = colorString;
+            document.getElementById('hueValue').textContent = h + '°';
+            document.getElementById('satValue').textContent = s + '%';
+            document.getElementById('lightValue').textContent = l + '%';
+        }
+
+        function setColorPreset(h, s, l) {
+            document.getElementById('hueSlider').value = h;
+            document.getElementById('satSlider').value = s;
+            document.getElementById('lightSlider').value = l;
+            updateColor();
+        }
+
+        function randomColor() {
+            const h = Math.floor(Math.random() * 360);
+            const s = 70 + Math.floor(Math.random() * 30);
+            const l = 40 + Math.floor(Math.random() * 20);
+            setColorPreset(h, s, l);
+        }
+
+        document.getElementById('hueSlider').addEventListener('input', updateColor);
+        document.getElementById('satSlider').addEventListener('input', updateColor);
+        document.getElementById('lightSlider').addEventListener('input', updateColor);
+
+        // ===== DRAWING PAD =====
+        const drawingPad = document.getElementById('drawingPad');
+        const drawingCtx = drawingPad.getContext('2d');
+        let isDrawing = false;
+
+        drawingPad.addEventListener('mousedown', startDrawing);
+        drawingPad.addEventListener('mousemove', draw);
+        drawingPad.addEventListener('mouseup', stopDrawing);
+        drawingPad.addEventListener('mouseleave', stopDrawing);
+
+        // Touch support
+        drawingPad.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = drawingPad.getBoundingClientRect();
+            const scaleX = drawingPad.width / rect.width;
+            const scaleY = drawingPad.height / rect.height;
+            const x = (touch.clientX - rect.left) * scaleX;
+            const y = (touch.clientY - rect.top) * scaleY;
+
+            const mouseEvent = {
+                offsetX: x / scaleX,
+                offsetY: y / scaleY,
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            };
+            startDrawing(mouseEvent);
+        });
+
+        drawingPad.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = drawingPad.getBoundingClientRect();
+            const scaleX = drawingPad.width / rect.width;
+            const scaleY = drawingPad.height / rect.height;
+            const x = (touch.clientX - rect.left) * scaleX;
+            const y = (touch.clientY - rect.top) * scaleY;
+
+            const mouseEvent = {
+                offsetX: x / scaleX,
+                offsetY: y / scaleY,
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            };
+            draw(mouseEvent);
+        });
+
+        drawingPad.addEventListener('touchend', stopDrawing);
+
+        function startDrawing(e) {
+            isDrawing = true;
+            draw(e);
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+
+            const rect = drawingPad.getBoundingClientRect();
+            const scaleX = drawingPad.width / rect.width;
+            const scaleY = drawingPad.height / rect.height;
+
+            let x, y;
+            if (e.offsetX !== undefined) {
+                x = e.offsetX * scaleX;
+                y = e.offsetY * scaleY;
+            } else {
+                x = (e.clientX - rect.left) * scaleX;
+                y = (e.clientY - rect.top) * scaleY;
+            }
+
+            drawingCtx.fillStyle = 'rgba(0, 217, 255, 0.8)';
+            drawingCtx.beginPath();
+            drawingCtx.arc(x, y, 3, 0, Math.PI * 2);
+            drawingCtx.fill();
+
+            // Store normalized coordinates
+            const normalizedX = (x / drawingPad.width - 0.5) * 2;
+            const normalizedY = (y / drawingPad.height - 0.5) * 2;
+            customShape.push({ x: normalizedX, y: normalizedY });
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+        }
+
+        function clearDrawingPad() {
+            drawingCtx.fillStyle = '#000';
+            drawingCtx.fillRect(0, 0, drawingPad.width, drawingPad.height);
+            customShape = [];
+        }
+
+        function saveCustomShape() {
+            if (customShape.length < 10) {
+                alert('Please draw at least 10 points!');
+                return;
+            }
+
+            // Downsample if too many points
+            if (customShape.length > 500) {
+                const step = Math.ceil(customShape.length / 500);
+                customShape = customShape.filter((_, i) => i % step === 0);
+            }
+
+            const color = `hsl(${currentColor.h}, ${currentColor.s}%, ${currentColor.l}%)`;
+            addToLibrary('custom', color, customShape);
+            alert('Custom shape saved to library!');
+        }
+
+        function testCustomShape() {
+            if (customShape.length < 10) {
+                alert('Please draw at least 10 points first!');
+                return;
+            }
+
+            const color = `hsl(${currentColor.h}, ${currentColor.s}%, ${currentColor.l}%)`;
+            const x = canvas.width / 2;
+            const y = canvas.height / 2;
+            fireworks.push(new Firework(x, canvas.height, y, color, 'custom'));
+        }
+
+        // ===== IMAGE UPLOAD =====
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const img = new Image();
+                img.onload = function () {
+                    processImage(img);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function processImage(img) {
+            const tempCanvas = document.createElement('canvas');
+            const tempCtx = tempCanvas.getContext('2d');
+
+            // Scale to max 100x100
+            const maxSize = 100;
+            let width = img.width;
+            let height = img.height;
+
+            if (width > height) {
+                if (width > maxSize) {
+                    height *= maxSize / width;
+                    width = maxSize;
+                }
+            } else {
+                if (height > maxSize) {
+                    width *= maxSize / height;
+                    height = maxSize;
+                }
+            }
+
+            tempCanvas.width = width;
+            tempCanvas.height = height;
+            tempCtx.drawImage(img, 0, 0, width, height);
+
+            const imageData = tempCtx.getImageData(0, 0, width, height);
+            const pixels = imageData.data;
+            const threshold = parseInt(document.getElementById('brightnessThreshold').value);
+            const edgeDetection = document.getElementById('edgeDetection').checked;
+
+            imageShape = [];
+
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const i = (y * width + x) * 4;
+                    const r = pixels[i];
+                    const g = pixels[i + 1];
+                    const b = pixels[i + 2];
+                    const a = pixels[i + 3];
+
+                    const brightness = (r + g + b) / 3;
+
+                    if (a > 50 && brightness > threshold) {
+                        if (edgeDetection) {
+                            // Check if adjacent to transparent pixel
+                            const isEdge = checkEdge(pixels, width, height, x, y);
+                            if (isEdge) {
+                                const normalizedX = (x / width - 0.5) * 2;
+                                const normalizedY = (y / height - 0.5) * 2;
+                                imageShape.push({
+                                    x: normalizedX,
+                                    y: normalizedY,
+                                    color: `rgb(${r}, ${g}, ${b})`
+                                });
+                            }
+                        } else {
+                            const normalizedX = (x / width - 0.5) * 2;
+                            const normalizedY = (y / height - 0.5) * 2;
+                            imageShape.push({
+                                x: normalizedX,
+                                y: normalizedY,
+                                color: `rgb(${r}, ${g}, ${b})`
+                            });
+                        }
+                    }
+                }
+            }
+
+            // Limit to 1000 particles
+            if (imageShape.length > 1000) {
+                const step = Math.ceil(imageShape.length / 1000);
+                imageShape = imageShape.filter((_, i) => i % step === 0);
+            }
+
+            const color = `hsl(${currentColor.h}, ${currentColor.s}%, ${currentColor.l}%)`;
+            addToLibrary('image', color, imageShape);
+            alert(`Image processed! ${imageShape.length} particles created.`);
+        }
+
+        function checkEdge(pixels, width, height, x, y) {
+            const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+            for (const [dx, dy] of directions) {
+                const nx = x + dx;
+                const ny = y + dy;
+                if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+                    const i = (ny * width + nx) * 4;
+                    if (pixels[i + 3] < 50) return true;
+                }
+            }
+            return false;
+        }
+
+        // ===== FIREWORK LIBRARY =====
+        function addToLibrary(shape, color, data = null) {
+            if (fireworkLibrary.length >= 20) {
+                alert('Library is full! (Max 20 fireworks)');
+                return;
+            }
+
+            const id = Date.now();
+            const firework = { id, shape, color, data };
+            fireworkLibrary.push(firework);
+            updateLibraryDisplay();
+            saveToLocalStorage();
+        }
+
+        function updateLibraryDisplay() {
+            const container = document.getElementById('fireworkLibrary');
+            container.innerHTML = '';
+
+            fireworkLibrary.forEach((fw, index) => {
+                const item = document.createElement('div');
+                item.className = 'firework-item';
+
+                const preview = document.createElement('canvas');
+                preview.width = 80;
+                preview.height = 80;
+                const previewCtx = preview.getContext('2d');
+
+                // Draw mini preview
+                previewCtx.fillStyle = '#000';
+                previewCtx.fillRect(0, 0, 80, 80);
+                drawMiniPreview(previewCtx, fw, 40, 40);
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete-btn';
+                deleteBtn.textContent = '×';
+                deleteBtn.onclick = () => removeFromLibrary(index);
+
+                item.appendChild(preview);
+                item.appendChild(deleteBtn);
+                item.onclick = (e) => {
+                    if (e.target !== deleteBtn) {
+                        addToSequence(fw);
+                    }
+                };
+
+                container.appendChild(item);
+            });
+
+            document.getElementById('libraryCount').textContent = fireworkLibrary.length;
+        }
+
+        function drawMiniPreview(ctx, fw, cx, cy) {
+            const particleCount = 30;
+
+            if (fw.shape === 'burst' || !fw.shape) {
+                for (let i = 0; i < particleCount; i++) {
+                    const angle = (Math.PI * 2 * i) / particleCount;
+                    const r = 20;
+                    const x = cx + Math.cos(angle) * r;
+                    const y = cy + Math.sin(angle) * r;
+                    ctx.fillStyle = fw.color;
+                    ctx.beginPath();
+                    ctx.arc(x, y, 1.5, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            } else if (fw.shape === 'ring') {
+                ctx.strokeStyle = fw.color;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(cx, cy, 20, 0, Math.PI * 2);
+                ctx.stroke();
+            } else if (fw.shape === 'heart') {
+                ctx.fillStyle = fw.color;
+                for (let i = 0; i < particleCount; i++) {
+                    const t = (i / particleCount) * Math.PI * 2;
+                    const x = cx + 1.5 * Math.pow(Math.sin(t), 3);
+                    const y = cy - (1.2 * Math.cos(t) - 0.5 * Math.cos(2 * t) - 0.2 * Math.cos(3 * t) - 0.1 * Math.cos(4 * t));
+                    ctx.beginPath();
+                    ctx.arc(x, y, 1.5, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            } else if (fw.shape === 'star') {
+                const points = 5;
+                for (let i = 0; i < points; i++) {
+                    const angle = (Math.PI * 2 * i) / points - Math.PI / 2;
+                    const x = cx + Math.cos(angle) * 20;
+                    const y = cy + Math.sin(angle) * 20;
+                    ctx.fillStyle = fw.color;
+                    ctx.beginPath();
+                    ctx.arc(x, y, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            } else {
+                // Default
+                ctx.fillStyle = fw.color;
+                ctx.beginPath();
+                ctx.arc(cx, cy, 15, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function removeFromLibrary(index) {
+            fireworkLibrary.splice(index, 1);
+            updateLibraryDisplay();
+            saveToLocalStorage();
+        }
+
+        function clearLibrary() {
+            if (confirm('Clear all saved fireworks?')) {
+                fireworkLibrary = [];
+                updateLibraryDisplay();
+                saveToLocalStorage();
+            }
+        }
+
+        // ===== SEQUENCER =====
+        function toggleSequencer() {
+            const panel = document.getElementById('sequencerPanel');
+            const icon = document.getElementById('sequencerToggleIcon');
+            panel.classList.toggle('collapsed');
+            icon.textContent = panel.classList.contains('collapsed') ? '▲' : '▼';
+        }
+
+        function addToSequence(firework) {
+            sequence.push({ ...firework, delay: 1000 });
+            updateSequenceDisplay();
+        }
+
+        function updateSequenceDisplay() {
+            const container = document.getElementById('sequence');
+            container.innerHTML = '';
+
+            sequence.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'sequence-item';
+                div.draggable = true;
+                div.innerHTML = `<div style="font-size: 10px;">#${index + 1}</div>`;
+
+                div.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/plain', index);
+                    div.classList.add('dragging');
+                });
+
+                div.addEventListener('dragend', () => {
+                    div.classList.remove('dragging');
+                });
+
+                div.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                });
+
+                div.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
+                    const toIndex = index;
+
+                    const item = sequence.splice(fromIndex, 1)[0];
+                    sequence.splice(toIndex, 0, item);
+                    updateSequenceDisplay();
+                });
+
+                container.appendChild(div);
+            });
+        }
+
+        function playSequence() {
+            if (sequence.length === 0) {
+                alert('Sequence is empty!');
+                return;
+            }
+
+            isSequencePlaying = true;
+            sequenceIndex = 0;
+            playNextInSequence();
+        }
+
+        function playNextInSequence() {
+            if (!isSequencePlaying || sequenceIndex >= sequence.length) {
+                if (document.getElementById('loopSequence').checked && isSequencePlaying) {
+                    sequenceIndex = 0;
+                    playNextInSequence();
+                } else {
+                    isSequencePlaying = false;
+                }
+                return;
+            }
+
+            const item = sequence[sequenceIndex];
+            const x = Math.random() * canvas.width;
+            const targetY = canvas.height * 0.3;
+
+            fireworks.push(new Firework(x, canvas.height, targetY, item.color, item.shape));
+
+            sequenceIndex++;
+            setTimeout(() => playNextInSequence(), item.delay);
+        }
+
+        function pauseSequence() {
+            isSequencePlaying = false;
+        }
+
+        function stopSequence() {
+            isSequencePlaying = false;
+            sequenceIndex = 0;
+        }
+
+        function clearSequence() {
+            sequence = [];
+            updateSequenceDisplay();
+        }
+
+        // ===== MODE TOGGLES =====
+        function toggleMode(mode) {
+            if (mode === 'manual') {
+                settings.manualEnabled = !settings.manualEnabled;
+                document.getElementById('manualToggle').classList.toggle('active');
+            } else {
+                settings.autoEnabled = !settings.autoEnabled;
+                document.getElementById('autoToggle').classList.toggle('active');
+            }
+        }
+
+        // ===== SLIDERS =====
+        document.getElementById('launchFrequency').addEventListener('input', (e) => {
+            const value = parseFloat(e.target.value) / 10;
+            document.getElementById('frequencyValue').textContent = value.toFixed(1) + '/sec';
+
+            if (autoLaunchInterval) {
+                clearInterval(autoLaunchInterval);
+                autoLaunchInterval = setInterval(launchSingleFirework, 1000 / value);
+            }
+        });
+
+        document.getElementById('manualWeight').addEventListener('input', (e) => {
+            settings.manualWeight = parseInt(e.target.value);
+            document.getElementById('manualWeightValue').textContent = settings.manualWeight + '%';
+        });
+
+        document.getElementById('autoWeight').addEventListener('input', (e) => {
+            settings.autoWeight = parseInt(e.target.value);
+            document.getElementById('autoWeightValue').textContent = settings.autoWeight + '%';
+        });
+
+        document.getElementById('gravitySlider').addEventListener('input', (e) => {
+            physics.gravity = parseFloat(e.target.value) / 100;
+            document.getElementById('gravityValue').textContent = (physics.gravity * 10).toFixed(1);
+        });
+
+        document.getElementById('windSlider').addEventListener('input', (e) => {
+            physics.wind = parseFloat(e.target.value) / 10;
+            document.getElementById('windValue').textContent = physics.wind.toFixed(1);
+        });
+
+        document.getElementById('brightnessThreshold').addEventListener('input', (e) => {
+            document.getElementById('thresholdValue').textContent = e.target.value;
+        });
+
+        // ===== SAVE/LOAD =====
+        function saveShow() {
+            const showData = {
+                library: fireworkLibrary,
+                sequence: sequence,
+                settings: settings
+            };
+
+            const dataStr = JSON.stringify(showData);
+            const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+
+            const exportFileDefaultName = 'fireworks-show.json';
+
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+        }
+
+        function loadShow() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+
+                reader.onload = (event) => {
+                    try {
+                        const showData = JSON.parse(event.target.result);
+                        fireworkLibrary = showData.library || [];
+                        sequence = showData.sequence || [];
+                        if (showData.settings) {
+                            Object.assign(settings, showData.settings);
+                        }
+                        updateLibraryDisplay();
+                        updateSequenceDisplay();
+                        alert('Show loaded successfully!');
+                    } catch (error) {
+                        alert('Error loading show file!');
+                    }
+                };
+
+                reader.readAsText(file);
+            };
+
+            input.click();
+        }
+
+        function saveToLocalStorage() {
+            try {
+                localStorage.setItem('fireworksLibrary', JSON.stringify(fireworkLibrary));
+            } catch (e) {
+                console.error('Could not save to localStorage', e);
+            }
+        }
+
+        function loadFromLocalStorage() {
+            try {
+                const saved = localStorage.getItem('fireworksLibrary');
+                if (saved) {
+                    fireworkLibrary = JSON.parse(saved);
+                    updateLibraryDisplay();
+                }
+            } catch (e) {
+                console.error('Could not load from localStorage', e);
+            }
+        }
+
+        // ===== EASTER EGGS =====
+        let konamiCode = [];
+        const konamiSequence = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+
+        document.addEventListener('keydown', (e) => {
+            konamiCode.push(e.key);
+            konamiCode = konamiCode.slice(-10);
+
+            if (JSON.stringify(konamiCode) === JSON.stringify(konamiSequence)) {
+                rainbowCascade();
+            }
+        });
+
+        function rainbowCascade() {
+            for (let i = 0; i < 20; i++) {
+                setTimeout(() => {
+                    const x = (canvas.width / 20) * i;
+                    const y = canvas.height * 0.3;
+                    const hue = (360 / 20) * i;
+                    const color = `hsl(${hue}, 100%, 50%)`;
+                    fireworks.push(new Firework(x, canvas.height, y, color, 'burst'));
+                }, i * 100);
+            }
+        }
+
+        // Double-click to launch
+        canvas.addEventListener('dblclick', (e) => {
+            const x = e.clientX;
+            const y = e.clientY;
+            const color = `hsl(${Math.random() * 360}, 100%, 50%)`;
+            createExplosion(x, y, color, 'burst');
+        });
+
+        // ===== INITIALIZATION =====
+        loadFromLocalStorage();
+        updateColor();
+
+        // Add some preset fireworks to library on first load
+        if (fireworkLibrary.length === 0) {
+            addToLibrary('burst', 'hsl(0, 100%, 50%)');
+            addToLibrary('ring', 'hsl(200, 100%, 50%)');
+            addToLibrary('heart', 'hsl(320, 100%, 50%)');
+            addToLibrary('star', 'hsl(45, 100%, 50%)');
+        }
+    </script>
+</body>
+
+</html>
